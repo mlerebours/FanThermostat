@@ -19,7 +19,9 @@
 #include <LiquidCrystal.h>
 
 /*-----( Declare Constants and Pin Numbers )-----*/
-#define ONE_WIRE_BUS_PIN 8
+#define ONE_WIRE_BUS_PIN 7
+#define RELAY_PIN_1 8
+#define RELAY_PIN_2 9
 
 /*-----( Declare objects )-----*/
 // Setup a oneWire instance to communicate with any OneWire devices
@@ -42,6 +44,9 @@ DeviceAddress Probe02 = { 0x28, 0xFF, 0x64, 0x8C, 0x73, 0x15, 0x01, 0xCB };
 
 void setup()   /****** SETUP: RUNS ONCE ******/
 {
+  pinMode(RELAY_PIN_1, OUTPUT);
+  pinMode(RELAY_PIN_2, OUTPUT);
+  
   // start serial port to show results
   Serial.begin(9600);
   Serial.print("Initializing Temperature Control Library Version ");
@@ -59,6 +64,8 @@ void setup()   /****** SETUP: RUNS ONCE ******/
   lcd.print("Temperature");
   lcd.setCursor(0, 1);
   lcd.print("Control");
+  
+  setSpeed(0);
 }//--(end setup )---
 
 void loop()   /****** LOOP: RUNS CONSTANTLY ******/
@@ -96,24 +103,46 @@ void loop()   /****** LOOP: RUNS CONSTANTLY ******/
   
   if (temp1 == -127 || temp2 == -127) {
     lcd.print("ERROR");
+      setSpeed(0);
   }
   else {
     lcd.print("FAN: ");
     if (temp1-temp2 < 0.75) 
     {
       lcd.print("OFF");
+      setSpeed(0);
     }
     else if (temp1-temp2 < 2) 
     {
       lcd.print("Speed 1");
+      setSpeed(1);
     }
     else 
     {
       lcd.print("Speed 2");
+      setSpeed(2);
     }
   }  
   
 }//--(end main loop )---
+
+void setSpeed(int speed)
+{
+  if (speed == 1)
+  {
+    digitalWrite(RELAY_PIN_1, LOW);
+    digitalWrite(RELAY_PIN_2, HIGH);
+  }
+  else if (speed == 2)
+  {
+    digitalWrite(RELAY_PIN_1, HIGH);
+    digitalWrite(RELAY_PIN_2, LOW);
+  }
+  else {
+    digitalWrite(RELAY_PIN_1, HIGH);
+    digitalWrite(RELAY_PIN_2, HIGH);
+  }
+}
 
 /*-----( Declare User-written Functions )-----*/
 float getTemperature(DeviceAddress deviceAddress)
